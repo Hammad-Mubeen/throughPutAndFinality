@@ -1,0 +1,19 @@
+{
+  "name": "throughPutAndFinality script",
+  "version": "1.0.0",
+  "main": "throughPutAndFinality.js",
+  "type": "module",
+  "scripts": {
+    "start": "node throughPutAndFinality",
+    "dev": "nodemon throughPutAndFinality",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "ethers": "^5.8.0",
+    "nodemon": "^3.1.9"
+  }
+}
