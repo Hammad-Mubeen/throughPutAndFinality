@@ -13,7 +13,7 @@ const FUND_AMOUNT = utils.parseEther("100");
 const gasPrice = utils.parseUnits("40", "gwei");
 const gasLimit = 21000;
 const frequency = 1000 * 1; // 15 minutes
-let nonce = 213;
+let nonce = 249;
 
 let wallets = [{
   address: "0x5D421D63551427A073b4d940d96B13018ca107A4",
@@ -156,6 +156,8 @@ const createWalletHelper = async () => {
 const main = async () => {
   try {
     console.log("Interval Process Started: ");
+    //let nonce = await provider.getTransactionCount(wallets[0].address);
+    //console.log(nonce);
     //await checkAndFundWallets(provider);
     await sendETHFromAllWallets(provider);
   } catch (error) {
