@@ -13,7 +13,7 @@ const FUND_AMOUNT = utils.parseEther("100");
 const gasPrice = utils.parseUnits("40", "gwei");
 const gasLimit = 21000;
 const frequency = 1000 * 1; // 15 minutes
-let nonce = 249;
+let nonce = 1;
 
 let wallets = [{
   address: "0x5D421D63551427A073b4d940d96B13018ca107A4",
@@ -83,7 +83,7 @@ const sendETH = async (senderWallet, to, amount, provider) => {
 
 const sendETHFromAllWallets = async (provider) => {
   const value = utils.parseEther("0.001");
-  for (var i = 0; i < 5; i++) {
+  for (var i = 0; i < 1; i++) {
     try {
       const userWallet = new Wallet(wallets[0].pk, provider);
       //let nonce = await provider.getTransactionCount(wallets[0].address);
