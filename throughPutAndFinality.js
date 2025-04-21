@@ -1,6 +1,6 @@
 import { providers, Wallet, utils } from "ethers";
 
-const RPC_URL = `http://3.15.178.121:8020/rpc/ethrpc`;
+const RPC_URL = `http://3.19.58.106:8010/rpc/ethrpc`;
 //const RPC_URL = 'https://3b6f-2407-d000-a-60b6-4cc7-6f90-bcf0-2b9d.ngrok-free.app/rpc/ethrpc';
 const PRIVATE_KEY = `0x8610452e57d659fdd68298d5b7da65ad6ecba04724158043f9b77f9e54b47517`;
 const RECEIVER = `0x3173E63d2Abbc1582fE41719EDeEE25A2624aC9D`;
@@ -13,7 +13,7 @@ const FUND_AMOUNT = utils.parseEther("100");
 const gasPrice = utils.parseUnits("40", "gwei");
 const gasLimit = 21000;
 const frequency = 1000 * 1; // 15 minutes
-let nonce = 1;
+let nonce = 12;
 
 let wallets = [{
   address: "0x5D421D63551427A073b4d940d96B13018ca107A4",
@@ -83,7 +83,7 @@ const sendETH = async (senderWallet, to, amount, provider) => {
 
 const sendETHFromAllWallets = async (provider) => {
   const value = utils.parseEther("0.001");
-  for (var i = 0; i < 1; i++) {
+  for (var i = 0; i < 100; i++) {
     try {
       const userWallet = new Wallet(wallets[0].pk, provider);
       //let nonce = await provider.getTransactionCount(wallets[0].address);
@@ -108,24 +108,24 @@ const sendETHFromAllWallets = async (provider) => {
       console.log(`Failed to send ETH from ${truncate(wallets[0].address)} wallet`,error);
     }
   }
-  console.log("Fire all transactions at once ...");
+  //console.log("Fire all transactions at once ...");
   // Fire all transactions at once
   const results = await Promise.allSettled(txHashes);
-  console.log("All transactions fired at once... ✅");
+  //console.log("All transactions fired at once... ✅");
 
-  console.log("Checking all fired transactions responses: ");
+  //console.log("Checking all fired transactions responses: ");
   results.forEach(async(res, i) => {
     if (res.status === "fulfilled") {
-      console.log(`TX ${i}: ✅ Sent! Hash: ${res.value}`);
+      //console.log(`TX ${i}: ✅ Sent! Hash: ${res.value}`);
       //let receipt = await provider.send("eth_getTransactionReceipt", [res.value]);
       //receipt = JSON.stringify(receipt);
       //console.log("\n receipt txHash : " + receipt);
     } else {
-      console.log(`TX ${i}: ❌ Failed - ${res.reason}`);
+      //console.log(`TX ${i}: ❌ Failed - ${res.reason}`);
     }
   });
   txHashes = [];
-  console.log("nonce: ",nonce);
+  //console.log("nonce: ",nonce);
   sendETHFromAllWallets(provider);
   return;
 };
