@@ -12,7 +12,7 @@ const MIN_BALANCE = utils.parseEther("0.05");
 const FUND_AMOUNT = utils.parseEther("100");
 const gasPrice = utils.parseUnits("40", "gwei");
 const gasLimit = 21000;
-let nonce = 1;
+let nonce = 2;
 
 let wallets = [
   {
@@ -680,7 +680,7 @@ const sendETH = async (senderWallet, to, amount, provider) => {
 
 const sendETHFromAllWallets = async (provider) => {
   const value = utils.parseEther("0.0001");
-  for (var i = 0; i < 100; i++) {
+  for (var i = 100; i < 150; i++) {
     try {
       const userWallet = new Wallet(wallets[i].pk, provider);
       const tx = {
@@ -701,24 +701,24 @@ const sendETHFromAllWallets = async (provider) => {
   //console.log("Fire all transactions at once ...");
   //Fire all transactions at once
   const results = await Promise.allSettled(txHashes);
-  //console.log("All transactions fired at once... ✅");
+  console.log("All transactions fired at once... ✅");
 
-  //console.log("Checking all fired transactions responses: ");
+  console.log("Checking all fired transactions responses: ");
   results.forEach(async(res, i) => {
     if (res.status === "fulfilled") {
-      //console.log(`TX ${i}: ✅ Sent! Hash: ${res.value}`);
+      console.log(`TX ${i}: ✅ Sent! Hash: ${res.value}`);
       //let receipt = await provider.send("eth_getTransactionReceipt", [res.value]);
       //receipt = JSON.stringify(receipt);
       //console.log("\n receipt txHash : " + receipt);
     } else {
-      //console.log(`TX ${i}: ❌ Failed - ${res.reason}`);
+      console.log(`TX ${i}: ❌ Failed - ${res.reason}`);
     }
   });
   txHashes = [];
-  //console.log("nonce: ",nonce);
+  console.log("nonce: ",nonce);
   nonce = nonce + 1;
-  //console.log("nonce increased: ",nonce);
-  sendETHFromAllWallets(provider);
+  console.log("nonce increased: ",nonce);
+  //sendETHFromAllWallets(provider);
   return;
 };
 
