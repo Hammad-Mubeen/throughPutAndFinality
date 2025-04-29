@@ -12,7 +12,7 @@ const MIN_BALANCE = utils.parseEther("0.05");
 const FUND_AMOUNT = utils.parseEther("100");
 const gasPrice = utils.parseUnits("40", "gwei");
 const gasLimit = 21000;
-let nonce = 1;
+let nonce = 2;
 
 let wallets = [
   {
@@ -680,7 +680,7 @@ const sendETH = async (senderWallet, to, amount, provider) => {
 
 const sendETHFromAllWallets = async (provider) => {
   const value = utils.parseEther("0.0001");
-  for (var i = 0; i < 100; i++) {
+  for (var i = 0; i < 10; i++) {
     try {
       const userWallet = new Wallet(wallets[i].pk, provider);
       const tx = {
