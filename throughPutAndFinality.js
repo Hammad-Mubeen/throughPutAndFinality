@@ -1,6 +1,6 @@
 import { providers, Wallet, utils } from "ethers";
 
-const RPC_URL = `http://3.19.58.106:8020/rpc/ethrpc`;
+const RPC_URL = `http://3.133.83.185:8020/rpc/ethrpc`;
 //const RPC_URL = 'https://3b6f-2407-d000-a-60b6-4cc7-6f90-bcf0-2b9d.ngrok-free.app/rpc/ethrpc';
 const PRIVATE_KEY = `0x8610452e57d659fdd68298d5b7da65ad6ecba04724158043f9b77f9e54b47517`;
 const RECEIVER = `0x3173E63d2Abbc1582fE41719EDeEE25A2624aC9D`;
@@ -12,7 +12,7 @@ const MIN_BALANCE = utils.parseEther("0.05");
 const FUND_AMOUNT = utils.parseEther("100");
 const gasPrice = utils.parseUnits("40", "gwei");
 const gasLimit = 21000;
-let nonce = 2;
+let nonce = 130;
 
 let wallets = [
   {
@@ -620,6 +620,10 @@ let wallets = [
 //let wallets = [];
 let txHashes = [];
 
+function sleep(ms) 
+{
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
 async function createWallets()
 {
     let wallet = Wallet.createRandom();
@@ -679,6 +683,9 @@ const sendETH = async (senderWallet, to, amount, provider) => {
 
 
 const sendETHFromAllWallets = async (provider) => {
+  let timeBefore = Date.now();
+  //console.log("Timestamp before: ",timeBefore);
+
   const value = utils.parseEther("0.0001");
   for (var i = 0; i < 10; i++) {
     try {
@@ -706,18 +713,27 @@ const sendETHFromAllWallets = async (provider) => {
   //console.log("Checking all fired transactions responses: ");
   results.forEach(async(res, i) => {
     if (res.status === "fulfilled") {
-      //console.log(`TX ${i}: ✅ Sent! Hash: ${res.value}`);
+      console.log(`TX ${i}: ✅ Sent! Hash: ${res.value}`);
       //let receipt = await provider.send("eth_getTransactionReceipt", [res.value]);
       //receipt = JSON.stringify(receipt);
       //console.log("\n receipt txHash : " + receipt);
     } else {
-      //console.log(`TX ${i}: ❌ Failed - ${res.reason}`);
+      console.log(`TX ${i}: ❌ Failed - ${res.reason}`);
     }
   });
   txHashes = [];
-  //console.log("nonce: ",nonce);
   nonce = nonce + 1;
-  //console.log("nonce increased: ",nonce);
+  console.log("nonce increased: ",nonce);
+
+  let timeAfter = Date.now();
+  //console.log("Timestamp after: ",timeAfter);
+
+  let timeToWait = 1000 - (timeAfter - timeBefore);
+  console.log("Time to wait: ",timeToWait);
+  if(timeToWait >= 0)
+  {
+    await sleep(timeToWait);
+  }
   sendETHFromAllWallets(provider);
   return;
 };
@@ -747,7 +763,7 @@ const createWalletHelper = async () => {
 
 const main = async () => {
   try {
-    console.log("Interval Process Started: ");
+    //console.log("Interval Process Started: ");
     //let nonce = await provider.getTransactionCount(wallets[0].address);
     //console.log(nonce);
     //await checkAndFundWallets(provider);
