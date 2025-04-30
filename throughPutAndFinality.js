@@ -12,7 +12,7 @@ const MIN_BALANCE = utils.parseEther("0.05");
 const FUND_AMOUNT = utils.parseEther("100");
 const gasPrice = utils.parseUnits("40", "gwei");
 const gasLimit = 21000;
-let nonce = 130;
+let nonce = 135;
 
 let wallets = [
   {
@@ -713,23 +713,23 @@ const sendETHFromAllWallets = async (provider) => {
   //console.log("Checking all fired transactions responses: ");
   results.forEach(async(res, i) => {
     if (res.status === "fulfilled") {
-      console.log(`TX ${i}: ✅ Sent! Hash: ${res.value}`);
+      //console.log(`TX ${i}: ✅ Sent! Hash: ${res.value}`);
       //let receipt = await provider.send("eth_getTransactionReceipt", [res.value]);
       //receipt = JSON.stringify(receipt);
       //console.log("\n receipt txHash : " + receipt);
     } else {
-      console.log(`TX ${i}: ❌ Failed - ${res.reason}`);
+      //console.log(`TX ${i}: ❌ Failed - ${res.reason}`);
     }
   });
   txHashes = [];
   nonce = nonce + 1;
-  console.log("nonce increased: ",nonce);
+  //console.log("nonce increased: ",nonce);
 
   let timeAfter = Date.now();
   //console.log("Timestamp after: ",timeAfter);
 
   let timeToWait = 1000 - (timeAfter - timeBefore);
-  console.log("Time to wait: ",timeToWait);
+  //console.log("Time to wait: ",timeToWait);
   if(timeToWait >= 0)
   {
     await sleep(timeToWait);
