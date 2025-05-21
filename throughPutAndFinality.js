@@ -1,6 +1,6 @@
 import { providers, Wallet, utils } from "ethers";
 
-const RPC_URL = `http://3.133.83.185:8020/rpc/ethrpc`;
+const RPC_URL = `http://3.133.83.185:8010/rpc/ethrpc`;
 //const RPC_URL = 'https://3b6f-2407-d000-a-60b6-4cc7-6f90-bcf0-2b9d.ngrok-free.app/rpc/ethrpc';
 const PRIVATE_KEY = `0x8610452e57d659fdd68298d5b7da65ad6ecba04724158043f9b77f9e54b47517`;
 const RECEIVER = `0x3173E63d2Abbc1582fE41719EDeEE25A2624aC9D`;
@@ -12,7 +12,7 @@ const MIN_BALANCE = utils.parseEther("0.05");
 const FUND_AMOUNT = utils.parseEther("100");
 const gasPrice = utils.parseUnits("40", "gwei");
 const gasLimit = 21000;
-let nonce = 4;
+let nonce = 485;
 
 let wallets = [
   {
@@ -711,16 +711,16 @@ const sendETHFromAllWallets = async (provider) => {
   //console.log("All transactions fired at once... ✅");
 
   //console.log("Checking all fired transactions responses: ");
-  results.forEach(async(res, i) => {
-    if (res.status === "fulfilled") {
-      //console.log(`TX ${i}: ✅ Sent! Hash: ${res.value}`);
-      //let receipt = await provider.send("eth_getTransactionReceipt", [res.value]);
-      //receipt = JSON.stringify(receipt);
-      //console.log("\n receipt txHash : " + receipt);
-    } else {
-      //console.log(`TX ${i}: ❌ Failed - ${res.reason}`);
-    }
-  });
+//   results.forEach(async(res, i) => {
+//     if (res.status === "fulfilled") {
+//       console.log(`TX ${i}: ✅ Sent! Hash: ${res.value}`);
+//       //let receipt = await provider.send("eth_getTransactionReceipt", [res.value]);
+//       //receipt = JSON.stringify(receipt);
+//       //console.log("\n receipt txHash : " + receipt);
+//     } else {
+//       console.log(`TX ${i}: ❌ Failed - ${res.reason}`);
+//     }
+//   });
   txHashes = [];
   nonce = nonce + 1;
   //console.log("nonce increased: ",nonce);
