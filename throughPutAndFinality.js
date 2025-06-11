@@ -1,18 +1,24 @@
 import { providers, Wallet, utils } from "ethers";
 
-const RPC_URL = `http://18.190.161.56:8030/rpc/ethrpc`;
-//const RPC_URL = 'https://3b6f-2407-d000-a-60b6-4cc7-6f90-bcf0-2b9d.ngrok-free.app/rpc/ethrpc';
+let RPC_URLs = [
+`http://18.190.161.56:8010/rpc/ethrpc`,
+`http://18.190.161.56:8020/rpc/ethrpc`,
+`http://18.190.161.56:8030/rpc/ethrpc`,
+`http://18.190.161.56:8040/rpc/ethrpc`,
+`http://18.190.161.56:8050/rpc/ethrpc`];
+let index = 0;
 const PRIVATE_KEY = `0x8610452e57d659fdd68298d5b7da65ad6ecba04724158043f9b77f9e54b47517`;
 const RECEIVER = `0x3173E63d2Abbc1582fE41719EDeEE25A2624aC9D`;
 
-const provider = new providers.JsonRpcProvider(RPC_URL);
+let provider = new providers.JsonRpcProvider(RPC_URLs[index]);
 const wallet = new Wallet(PRIVATE_KEY, provider);
 
 const MIN_BALANCE = utils.parseEther("0.05");
 const FUND_AMOUNT = utils.parseEther("100");
 const gasPrice = utils.parseUnits("40", "gwei");
 const gasLimit = 21000;
-let nonce = 72;
+let nonce = 829;
+let TPS = 35, whenToChangePort = TPS/2;
 
 let wallets = [
   {
@@ -639,6 +645,15 @@ const truncate = (address) => {
   return address.slice(0, 6);
 };
 
+async function changeRPC()
+{
+    index = index + 1;
+    if(index == 5)
+    {
+        index = 0;
+    }
+}
+
 const checkAndFundWallets = async (provider) => {
   try {
     const balance = await provider.getBalance(wallets[0].address);
@@ -681,29 +696,25 @@ const sendETH = async (senderWallet, to, amount, provider) => {
   }
 };
 
-
 const sendETHFromAllWallets = async (provider) => {
+  //console.log("RPC: ",RPC_URLs[index]);
   let timeBefore = Date.now();
   //console.log("Timestamp before: ",timeBefore);
 
   const value = utils.parseEther("0.0001");
-  for (var i = 35; i < 70; i++) {
-    try {
-      const userWallet = new Wallet(wallets[i].pk, provider);
-      const tx = {
-      to: RECEIVER,
-      nonce, 
-      value,
-      gasPrice,
-      gasLimit,
-      chainId: 257,
-      };
-      const signedTx = await userWallet.signTransaction(tx);
-      let promise = provider.send("eth_sendRawTransaction", [signedTx]);
-      txHashes.push(promise);
-    } catch (error) {
-      console.log(`Failed to send ETH from ${truncate(wallets[i].address)} wallet`,error);
-    }
+  for (var i = 70; i < 105; i++) {
+    const userWallet = new Wallet(wallets[i].pk, provider);
+    const tx = {
+    to: RECEIVER,
+    nonce, 
+    value,
+    gasPrice,
+    gasLimit,
+    chainId: 257,
+    };
+    const signedTx = await userWallet.signTransaction(tx);
+    let promise = provider.send("eth_sendRawTransaction", [signedTx]);
+    txHashes.push(promise);
   }
   //console.log("Fire all transactions at once ...");
   //Fire all transactions at once
@@ -711,16 +722,25 @@ const sendETHFromAllWallets = async (provider) => {
   //console.log("All transactions fired at once... ✅");
 
   //console.log("Checking all fired transactions responses: ");
-//   results.forEach(async(res, i) => {
-//     if (res.status === "fulfilled") {
-//       console.log(`TX ${i}: ✅ Sent! Hash: ${res.value}`);
-//       //let receipt = await provider.send("eth_getTransactionReceipt", [res.value]);
-//       //receipt = JSON.stringify(receipt);
-//       //console.log("\n receipt txHash : " + receipt);
-//     } else {
-//       console.log(`TX ${i}: ❌ Failed - ${res.reason}`);
-//     }
-//   });
+  let flag = 0;
+  results.forEach(async(res, i) => {
+    if (res.status === "fulfilled") {
+      //console.log(`TX ${i}: ✅ Sent! Hash: ${res.value}`);
+      //let receipt = await provider.send("eth_getTransactionReceipt", [res.value]);
+      //receipt = JSON.stringify(receipt);
+      //console.log("\n receipt txHash : " + receipt);
+    } else {
+      //console.log(`TX ${i}: ❌ Failed - ${res.reason}`);
+      flag++;
+    }
+  });
+
+  if(flag >= whenToChangePort)
+  {
+    await changeRPC();
+    provider = new providers.JsonRpcProvider(RPC_URLs[index]);
+  }
+
   txHashes = [];
   nonce = nonce + 1;
   //console.log("nonce increased: ",nonce);
