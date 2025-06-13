@@ -1,24 +1,30 @@
-import { providers, Wallet, utils } from "ethers";
+import {Web3} from 'web3';
 
 let RPC_URLs = [
-`http://18.190.161.56:8010/rpc/ethrpc`,
 `http://18.190.161.56:8020/rpc/ethrpc`,
 `http://18.190.161.56:8030/rpc/ethrpc`,
 `http://18.190.161.56:8040/rpc/ethrpc`,
 `http://18.190.161.56:8050/rpc/ethrpc`];
-let index = 0;
-const PRIVATE_KEY = `0x8610452e57d659fdd68298d5b7da65ad6ecba04724158043f9b77f9e54b47517`;
-const RECEIVER = `0x3173E63d2Abbc1582fE41719EDeEE25A2624aC9D`;
 
-let provider = new providers.JsonRpcProvider(RPC_URLs[index]);
-const wallet = new Wallet(PRIVATE_KEY, provider);
-
-const MIN_BALANCE = utils.parseEther("0.05");
-const FUND_AMOUNT = utils.parseEther("100");
-const gasPrice = utils.parseUnits("40", "gwei");
-const gasLimit = 21000;
-let nonce = 94021;
+let index = 1;
+let CONTRACT_ADDRESS = "0x67F1a9F8b4f40015D47Fc296Df9aFC3E7f9B4c3d";
+let AMOUNT_TO_REWARD = 100; // Each reward call mints this much
+let gas = 50000;
+let nonce = 101;
 let TPS = 35, whenToChangePort = TPS/2;
+let txHashes= [];
+
+
+// Minimal ABI with reward function
+const ABI = [
+  {
+    "inputs": [{ "internalType": "uint256", "name": "_amount", "type": "uint256" }],
+    "name": "reward",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+];
 
 let wallets = [
   {
@@ -623,100 +629,52 @@ let wallets = [
   }
 ];
 
-//let wallets = [];
-let txHashes = [];
+// Initial Setup
+let web3 = new Web3(RPC_URLs[index]);
+let contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
 
-function sleep(ms) 
-{
-    return new Promise((resolve) => setTimeout(resolve, ms));
-}
-async function createWallets()
-{
-    let wallet = Wallet.createRandom();
-    let input = {
-        address: wallet.address,
-        pk: wallet.privateKey
-    };
-    wallets.push(input);
-    console.log("Wallet: ",wallets);
-}
-
-const truncate = (address) => {
-  return address.slice(0, 6);
-};
+const safeStringify = (obj) =>
+  JSON.stringify(obj, (_, value) =>
+    typeof value === 'bigint' ? value.toString() : value
+);
 
 async function changeRPC()
 {
     index = index + 1;
-    if(index == 5)
+    if(index == 4)
     {
         index = 0;
     }
 }
 
-const checkAndFundWallets = async (provider) => {
-  try {
-    const balance = await provider.getBalance(wallets[0].address);
-    console.log(balance);
-    if (balance.lt(MIN_BALANCE)) {
-      console.log(
-        `Funding wallet ${wallets[0].address} with ${utils.formatEther(FUND_AMOUNT)} ETH`
-      );
-      //await sendETH(wallet, wallets[0].address, FUND_AMOUNT, provider);
-    }
-    else{
-      console.log(
-        `Wallet ${wallets[0].address} have ${utils.formatEther(FUND_AMOUNT)} ETH...`
-      );
-    }
-  } catch (error) {
-    console.log(`Failed to check and fund wallet ${truncate(wallets[0].address)}`,error);
-  }
-};
+async function callRewardNTimes() {
 
-const sendETH = async (senderWallet, to, amount, provider) => {
-  try {
-    const nonce = await provider.getTransactionCount(wallet.address);
-    console.log("nonce: ",nonce);
-    const tx = {
-      to,
-      value: amount,
-      nonce,
-      gasLimit,
-      gasPrice,
-      chainId: 257,
-    };
-    const signedTx = await senderWallet.signTransaction(tx);
-    const txHash = await provider.send("eth_sendRawTransaction", [signedTx]);
-    let receipt = await provider.send("eth_getTransactionReceipt", [txHash]);
-    receipt = JSON.stringify(receipt);
-    console.log("\n receipt txHash : " + receipt);
-  } catch (error) {
-    console.log(`Failed to send ETH to ${truncate(to)}: `,error);
-  }
-};
+  const gasPrice = web3.utils.toWei("40", "gwei");
 
-const sendETHFromAllWallets = async (provider) => {
   //console.log("RPC: ",RPC_URLs[index]);
   let timeBefore = Date.now();
   //console.log("Timestamp before: ",timeBefore);
 
-  const value = utils.parseEther("0.0001");
-  for (var i = 70; i < 105; i++) {
-    const userWallet = new Wallet(wallets[i].pk, provider);
-    const tx = {
-    to: RECEIVER,
-    nonce, 
-    value,
-    gasPrice,
-    gasLimit,
-    chainId: 257,
-    };
-    const signedTx = await userWallet.signTransaction(tx);
-    let promise = provider.send("eth_sendRawTransaction", [signedTx]);
-    txHashes.push(promise);
+  for (let i = 105; i < 140; i++) {
+    try {
+      let account = web3.eth.accounts.privateKeyToAccount(wallets[i].pk);
+      web3.eth.accounts.wallet.add(account);
+      web3.eth.defaultAccount = account.address;
+
+      //console.log(account.address);
+      let tx = contract.methods.reward(AMOUNT_TO_REWARD);
+      let promise = tx.send({
+        from: account.address,
+        gas,
+        gasPrice,
+        nonce
+      });
+      txHashes.push(promise);
+    } catch (err) {
+      console.error(`❌ Tx ${i} failed:`, err.message);
+    }
   }
-  //console.log("Fire all transactions at once ...");
+  //console.log("Fire all contract interaction transactions at once ...");
   //Fire all transactions at once
   const results = await Promise.allSettled(txHashes);
   //console.log("All transactions fired at once... ✅");
@@ -725,12 +683,9 @@ const sendETHFromAllWallets = async (provider) => {
   let flag = 0;
   results.forEach(async(res, i) => {
     if (res.status === "fulfilled") {
-      //console.log(`TX ${i}: ✅ Sent! Hash: ${res.value}`);
-      //let receipt = await provider.send("eth_getTransactionReceipt", [res.value]);
-      //receipt = JSON.stringify(receipt);
-      //console.log("\n receipt txHash : " + receipt);
+      //console.log("TX " + i + ": ✅ Sent! Hash: " + safeStringify(res.value.transactionHash));
     } else {
-      //console.log(`TX ${i}: ❌ Failed - ${res.reason}`);
+      //console.log("TX " + i + ": ❌ Failed - " +safeStringify(res.reason));
       flag++;
     }
   });
@@ -738,7 +693,8 @@ const sendETHFromAllWallets = async (provider) => {
   if(flag >= whenToChangePort)
   {
     await changeRPC();
-    provider = new providers.JsonRpcProvider(RPC_URLs[index]);
+    web3 = new Web3(RPC_URLs[index]);
+    contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
   }
 
   txHashes = [];
@@ -754,40 +710,13 @@ const sendETHFromAllWallets = async (provider) => {
   {
     await sleep(timeToWait);
   }
-  sendETHFromAllWallets(provider);
+  callRewardNTimes();
   return;
-};
-
-const checkSendETHFromAllWalletsTXs = async (provider) => {
-  for (var i=0; i< wallets.length; i++) {
-    try {
-      let txHash= txHashes[i];
-      console.log("txHash: ",txHash);
-      let receipt = await provider.send("eth_getTransactionReceipt", [txHash]);
-      receipt = JSON.stringify(receipt);
-      console.log("\n receipt txHash : " + receipt);
-    } catch (error) {
-      console.log(`Failed to receive Tx from ${truncate(wallets[i].address)} wallet`,error);
-    }
-  }
-};
-
-const createWalletHelper = async () => {
-  try {
-    console.log("First time create a new wallet: ");
-    await createWallets();
-  } catch (error) {
-    console.log("function error: ",error);
-  }
-};
+}
 
 const main = async () => {
   try {
-    //console.log("Interval Process Started: ");
-    //let nonce = await provider.getTransactionCount(wallets[0].address);
-    //console.log(nonce);
-    //await checkAndFundWallets(provider);
-    await sendETHFromAllWallets(provider);
+    await callRewardNTimes();
   } catch (error) {
     console.log("Main function error: ",error);
   }
