@@ -6,11 +6,11 @@ let RPC_URLs = [
 `http://18.190.161.56:8040/rpc/ethrpc`,
 `http://18.190.161.56:8050/rpc/ethrpc`];
 
-let index = 1;
+let index = 0;
 let CONTRACT_ADDRESS = "0x67F1a9F8b4f40015D47Fc296Df9aFC3E7f9B4c3d";
 let AMOUNT_TO_REWARD = 100; // Each reward call mints this much
 let gas = 50000;
-let nonce = 110;
+let nonce = 114;
 let TPS = 35, whenToChangePort = TPS/2;
 let txHashes= [];
 
@@ -651,9 +651,9 @@ async function callRewardNTimes() {
 
   const gasPrice = web3.utils.toWei("40", "gwei");
 
-  //console.log("RPC: ",RPC_URLs[index]);
+  console.log("RPC: ",RPC_URLs[index]);
   let timeBefore = Date.now();
-  //console.log("Timestamp before: ",timeBefore);
+  console.log("Timestamp before: ",timeBefore);
 
   for (let i = 105; i < 140; i++) {
     try {
@@ -674,18 +674,18 @@ async function callRewardNTimes() {
       console.error(`❌ Tx ${i} failed:`, err.message);
     }
   }
-  //console.log("Fire all contract interaction transactions at once ...");
+  console.log("Fire all contract interaction transactions at once ...");
   //Fire all transactions at once
   const results = await Promise.allSettled(txHashes);
-  //console.log("All transactions fired at once... ✅");
+  console.log("All transactions fired at once... ✅");
 
-  //console.log("Checking all fired transactions responses: ");
+  console.log("Checking all fired transactions responses: ");
   let flag = 0;
   results.forEach(async(res, i) => {
     if (res.status === "fulfilled") {
-      //console.log("TX " + i + ": ✅ Sent! Hash: " + safeStringify(res.value.transactionHash));
+      console.log("TX " + i + ": ✅ Sent! Hash: " + safeStringify(res.value.transactionHash));
     } else {
-      //console.log("TX " + i + ": ❌ Failed - " +safeStringify(res.reason));
+      console.log("TX " + i + ": ❌ Failed - " +safeStringify(res.reason));
       flag++;
     }
   });
@@ -699,13 +699,13 @@ async function callRewardNTimes() {
 
   txHashes = [];
   nonce = nonce + 1;
-  //console.log("nonce increased: ",nonce);
+  console.log("nonce increased: ",nonce);
 
   let timeAfter = Date.now();
-  //console.log("Timestamp after: ",timeAfter);
+  console.log("Timestamp after: ",timeAfter);
 
   let timeToWait = 1000 - (timeAfter - timeBefore);
-  //console.log("Time to wait: ",timeToWait);
+  console.log("Time to wait: ",timeToWait);
   if(timeToWait >= 0)
   {
     await sleep(timeToWait);
