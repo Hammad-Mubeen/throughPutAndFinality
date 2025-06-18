@@ -4,7 +4,6 @@ let RPC_URLs = [
 `http://18.190.161.56:8010/rpc/ethrpc`,
 `http://18.190.161.56:8020/rpc/ethrpc`,
 `http://18.190.161.56:8030/rpc/ethrpc`,
-`http://18.190.161.56:8040/rpc/ethrpc`,
 `http://18.190.161.56:8050/rpc/ethrpc`];
 let index = 0;
 const PRIVATE_KEY = `0x8610452e57d659fdd68298d5b7da65ad6ecba04724158043f9b77f9e54b47517`;
@@ -17,7 +16,7 @@ const MIN_BALANCE = utils.parseEther("0.05");
 const FUND_AMOUNT = utils.parseEther("100");
 const gasPrice = utils.parseUnits("40", "gwei");
 const gasLimit = 21000;
-let nonce = 94021;
+let nonce = 94584;
 let TPS = 35, whenToChangePort = TPS/2;
 
 let wallets = [
@@ -648,7 +647,7 @@ const truncate = (address) => {
 async function changeRPC()
 {
     index = index + 1;
-    if(index == 5)
+    if(index == 4)
     {
         index = 0;
     }
@@ -697,7 +696,7 @@ const sendETH = async (senderWallet, to, amount, provider) => {
 };
 
 const sendETHFromAllWallets = async (provider) => {
-  //console.log("RPC: ",RPC_URLs[index]);
+  console.log("RPC: ",RPC_URLs[index]);
   let timeBefore = Date.now();
   //console.log("Timestamp before: ",timeBefore);
 
@@ -716,21 +715,21 @@ const sendETHFromAllWallets = async (provider) => {
     let promise = provider.send("eth_sendRawTransaction", [signedTx]);
     txHashes.push(promise);
   }
-  //console.log("Fire all transactions at once ...");
+  console.log("Fire all transactions at once ...");
   //Fire all transactions at once
   const results = await Promise.allSettled(txHashes);
-  //console.log("All transactions fired at once... ✅");
+  console.log("All transactions fired at once... ✅");
 
-  //console.log("Checking all fired transactions responses: ");
+  console.log("Checking all fired transactions responses: ");
   let flag = 0;
   results.forEach(async(res, i) => {
     if (res.status === "fulfilled") {
-      //console.log(`TX ${i}: ✅ Sent! Hash: ${res.value}`);
+      console.log(`TX ${i}: ✅ Sent! Hash: ${res.value}`);
       //let receipt = await provider.send("eth_getTransactionReceipt", [res.value]);
       //receipt = JSON.stringify(receipt);
       //console.log("\n receipt txHash : " + receipt);
     } else {
-      //console.log(`TX ${i}: ❌ Failed - ${res.reason}`);
+      console.log(`TX ${i}: ❌ Failed - ${res.reason}`);
       flag++;
     }
   });
@@ -743,13 +742,13 @@ const sendETHFromAllWallets = async (provider) => {
 
   txHashes = [];
   nonce = nonce + 1;
-  //console.log("nonce increased: ",nonce);
+  console.log("nonce increased: ",nonce);
 
   let timeAfter = Date.now();
-  //console.log("Timestamp after: ",timeAfter);
+  console.log("Timestamp after: ",timeAfter);
 
   let timeToWait = 1000 - (timeAfter - timeBefore);
-  //console.log("Time to wait: ",timeToWait);
+  console.log("Time to wait: ",timeToWait);
   if(timeToWait >= 0)
   {
     await sleep(timeToWait);

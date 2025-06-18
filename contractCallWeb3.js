@@ -1,13 +1,18 @@
 import {Web3} from 'web3';
 
-let RPC_URLs = [`http://18.190.161.56:8030/rpc/ethrpc`];
+let RPC_URLs = [
+`http://18.190.161.56:8010/rpc/ethrpc`,
+`http://18.190.161.56:8020/rpc/ethrpc`,
+`http://18.190.161.56:8030/rpc/ethrpc`,
+`http://18.190.161.56:8050/rpc/ethrpc`];
 
 let index = 0;
 let CONTRACT_ADDRESS = "0x67F1a9F8b4f40015D47Fc296Df9aFC3E7f9B4c3d";
 let AMOUNT_TO_REWARD = 100; // Each reward call mints this much
 let gas = 50000;
-let nonce = 623;
-let TPS = 35, whenToChangePort = TPS/2;
+//let nonce =  15435;
+let nonce =  162;
+let TPS = 5, whenToChangePort = TPS/2;
 let txHashes= [];
 
 
@@ -649,70 +654,76 @@ async function changeRPC()
 }
 
 async function callRewardNTimes() {
+  try {
+    const gasPrice = web3.utils.toWei("40", "gwei");
 
-  const gasPrice = web3.utils.toWei("40", "gwei");
+    console.log("RPC: ",RPC_URLs[index]);
+    let timeBefore = Date.now();
+    console.log("Timestamp before: ",timeBefore);
 
-  console.log("RPC: ",RPC_URLs[index]);
-  let timeBefore = Date.now();
-  console.log("Timestamp before: ",timeBefore);
+    for (let i = 140; i < 145; i++) {
+        try {
+        let account = web3.eth.accounts.privateKeyToAccount(wallets[i].pk);
+        web3.eth.accounts.wallet.add(account);
+        web3.eth.defaultAccount = account.address;
 
-  for (let i = 105; i < 140; i++) {
-    try {
-      let account = web3.eth.accounts.privateKeyToAccount(wallets[i].pk);
-      web3.eth.accounts.wallet.add(account);
-      web3.eth.defaultAccount = account.address;
-
-      //console.log(account.address);
-      let tx = contract.methods.reward(AMOUNT_TO_REWARD);
-      let promise = tx.send({
-        from: account.address,
-        gas,
-        gasPrice,
-        nonce
-      });
-      txHashes.push(promise);
-    } catch (err) {
-      console.error(`❌ Tx ${i} failed:`, err.message);
+        //console.log(account.address);
+        let tx = contract.methods.reward(AMOUNT_TO_REWARD);
+        let promise = tx.send({
+            from: account.address,
+            gas,
+            gasPrice,
+            nonce
+        });
+        txHashes.push(promise);
+        } catch (err) {
+        console.error(`❌ Tx ${i} failed:`, err.message);
+        }
     }
-  }
-  console.log("Fire all contract interaction transactions at once ...");
-  //Fire all transactions at once
-  const results = await Promise.allSettled(txHashes);
-  console.log("All transactions fired at once... ✅");
+    console.log("Fire all contract interaction transactions at once ...");
+    //Fire all transactions at once
+    const results = await Promise.allSettled(txHashes);
+    console.log("All transactions fired at once... ✅");
 
-  console.log("Checking all fired transactions responses: ");
-  //let flag = 0;
-  results.forEach(async(res, i) => {
-    if (res.status === "fulfilled") {
-      console.log("TX " + i + ": ✅ Sent! Hash: " + safeStringify(res.value.transactionHash));
-    } else {
-      console.log("TX " + i + ": ❌ Failed - " +safeStringify(res.reason));
-      //flag++;
+    console.log("Checking all fired transactions responses: ");
+    let flag = 0;
+    results.forEach(async(res, i) => {
+        if (res.status === "fulfilled") {
+            console.log("TX " + i + ": ✅ Sent! Hash: " + safeStringify(res.value.transactionHash));
+        } else {
+            console.log("TX " + i + ": ❌ Failed - " +safeStringify(res.reason));
+            flag++;
+        }
+    });
+
+    if(flag >= whenToChangePort)
+    {
+        await changeRPC();
+        web3 = new Web3(RPC_URLs[index]);
+        contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
     }
-  });
 
-//   if(flag >= whenToChangePort)
-//   {
-//     await changeRPC();
-//     web3 = new Web3(RPC_URLs[index]);
-//     contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
-//   }
+    txHashes = [];
+    nonce = nonce + 1;
+    console.log("nonce increased: ",nonce);
 
-  txHashes = [];
-  nonce = nonce + 1;
-  console.log("nonce increased: ",nonce);
+    let timeAfter = Date.now();
+    console.log("Timestamp after: ",timeAfter);
 
-  let timeAfter = Date.now();
-  console.log("Timestamp after: ",timeAfter);
+    let timeToWait = timeAfter - timeBefore;
+    console.log("Time took for calls: ",timeToWait);
+    timeToWait = 10000 - timeToWait;
 
-  let timeToWait = 1000 - (timeAfter - timeBefore);
-  console.log("Time to wait: ",timeToWait);
-  if(timeToWait >= 0)
-  {
-    await sleep(timeToWait);
+    console.log("More Time to wait: ",timeToWait);
+    if(timeToWait >= 0)
+    {
+        await sleep(timeToWait);
+    }
+    callRewardNTimes();
+    return;
+  } catch (error) {
+    console.log("Error: ", error);
   }
-  callRewardNTimes();
-  return;
 }
 
 const main = async () => {
