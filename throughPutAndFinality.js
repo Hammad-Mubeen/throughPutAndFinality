@@ -16,7 +16,7 @@ const MIN_BALANCE = utils.parseEther("0.05");
 const FUND_AMOUNT = utils.parseEther("100");
 const gasPrice = utils.parseUnits("40", "gwei");
 const gasLimit = 21000;
-let nonce = 94584;
+let nonce = 94622;
 let TPS = 35, whenToChangePort = TPS/2;
 
 let wallets = [
@@ -747,8 +747,10 @@ const sendETHFromAllWallets = async (provider) => {
   let timeAfter = Date.now();
   console.log("Timestamp after: ",timeAfter);
 
-  let timeToWait = 1000 - (timeAfter - timeBefore);
-  console.log("Time to wait: ",timeToWait);
+  let timeToWait = timeAfter - timeBefore;
+  console.log("Call took Time (in seconds): ", timeToWait/1000);
+
+  timeToWait = 1000 - timeToWait; 
   if(timeToWait >= 0)
   {
     await sleep(timeToWait);

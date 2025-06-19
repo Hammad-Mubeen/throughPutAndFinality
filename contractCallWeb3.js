@@ -11,7 +11,7 @@ let CONTRACT_ADDRESS = "0x67F1a9F8b4f40015D47Fc296Df9aFC3E7f9B4c3d";
 let AMOUNT_TO_REWARD = 100; // Each reward call mints this much
 let gas = 50000;
 //let nonce =  15435;
-let nonce =  162;
+let nonce =  5000;
 let TPS = 5, whenToChangePort = TPS/2;
 let txHashes= [];
 
